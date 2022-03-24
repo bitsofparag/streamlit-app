@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+echo "==> Running isort..."
+isort app_* --ac -c
+echo "==> Running flake8..."
+flake8 app_*
+echo "==> Running tests..."
+echo "No tests yet"
+
+# Run:
+# ln -s pre-commit .git/hooks/pre-commit

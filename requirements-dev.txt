@@ -1,0 +1,5 @@
+nose2
+flake8>=3.9
+isort
+black@git+git://github.com/psf/black
+watchdog>=0.10.2
