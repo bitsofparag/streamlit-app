@@ -1,0 +1,8 @@
+*
+.*
+
+!.streamlit
+!environment.yml
+!*.py
+!charts
+!data_sources

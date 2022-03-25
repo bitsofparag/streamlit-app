@@ -1,10 +1,8 @@
 FROM bitsofparag/pandas:1.4.1
 
-ARG APP=app_weather_ts
+COPY . /usr/local/src/app
 
-COPY ${APP} /usr/local/src/apps
-
-WORKDIR /usr/local/src/apps
+WORKDIR /usr/local/src/app
 
 RUN micromamba update -n base --yes --file environment.yml \
     && micromamba env export --explicit > /opt/conda/conda-meta.lock

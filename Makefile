@@ -1,5 +1,5 @@
-IMG_REPO ?= bitsofparag/streamlit-app
-APPS = $(shell find . -type d -name 'app_*')
+SHELL := bash
+IMG_REPO_PREFIX ?= bitsofparag/
 
 define PRINT_HELP_PYSCRIPT
 import re, sys
@@ -11,47 +11,48 @@ for line in sys.stdin:
 endef
 export PRINT_HELP_PYSCRIPT
 
-define DIST_HELP
-Please provide a valid APP and VERSION.
->> APP=app_folder_name VERSION=1.2.3 make dist
-endef
-
-define _get_version
-cd $1 && \
-	if [[ -f setup.py ]]; then python3 setup.py --version;\
-	elif [[ -f VERSION ]]; then cat VERSION;\
-	elif [[ -f package.json ]]; then awk -F \" '/"version": ".+"/ { print $4; exit; }' package.json;\
-	else echo "No version found" && exit 1;fi
-endef
-
 
 help: ## Help
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 
-app_%: ## Build docker image for public registry
-	VERSION=$(call _get_version, $<)
-	@docker build \
-		--build-arg VERSION=${VERSION} \
-		-t ${IMG_REPO}:${VERSION} .
+apps: ## Build docker images for all apps
+	for app in apps/* ; do \
+		docker build \
+			--build-arg VERSION=`cat $$app/VERSION` \
+			-t ${IMG_REPO_PREFIX}`basename $$app`:`cat $$app/VERSION` $$app ; \
+	done
 
 
-publish-versions: ## Publish versioned tag to docker registry
-ifeq (${VERSION}, )
-	@echo "$$DIST_HELP"
+app: ## Build docker image for user-specified $APP
+ifeq (${APP}, )
+	@echo "Usage: APP=app-folder-name make app"
 	@exit 1
 endif
-	@docker image push ${IMG_REPO}:${VERSION}
+	app=apps/${APP} \
+	&& docker build \
+			--build-arg VERSION=`cat $$app/VERSION` \
+			-t ${IMG_REPO_PREFIX}`basename $$app`:`cat $$app/VERSION` $$app ; \
 
 
-publish-latest: ## Publish 'latest' tag to docker registry
-ifeq (${VERSION}, )
-	@echo "$$DIST_HELP"
-	@exit 1
-endif
-	@docker image tag ${IMG_REPO}:${VERSION} ${IMG_REPO}:latest
-	@docker image push ${IMG_REPO}:latest
+publish-versions: apps ## Publish versioned tag to docker registry
+	@for app in apps/* ; do \
+		docker image push ${IMG_REPO_PREFIX}`basename $$app`:`cat $$app/VERSION`; \
+	done
 
 
-.PHONY: help dist publish-versions publish-latest
+publish-all: publish-versions ## Publish 'latest' tag to docker registry
+	@for app in apps/* ; do \
+		docker image tag ${IMG_REPO_PREFIX}`basename $$app`:`cat $$app/VERSION` ${IMG_REPO_PREFIX}`basename $$app`:latest ; \
+		docker image push ${IMG_REPO_PREFIX}`basename $$app`:latest ; \
+	done
+
+
+lint-all: ## Lint all app Dockerfiles
+	@for app in apps/* ; do \
+		dockerlint $$app/Dockerfile ; \
+	done
+
+
+.PHONY: help app apps publish-versions publish-all lint-all
 .DEFAULT: help
