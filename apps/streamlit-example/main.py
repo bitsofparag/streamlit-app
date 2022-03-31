@@ -10,7 +10,7 @@ Sample Streamlit App.
 """
 import streamlit as st
 import pandas as pd
-from .utils import configure_logger
+from utils import configure_logger
 
 logger = configure_logger('streamlit-example')
 
