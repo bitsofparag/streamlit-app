@@ -1,6 +1,6 @@
 FROM bitsofparag/pandas:1.4.1
 
-COPY . /usr/local/src/app
+COPY --chown=mambauser . /usr/local/src/app
 
 WORKDIR /usr/local/src/app
 
@@ -15,5 +15,7 @@ RUN micromamba clean --all --yes \
     && find /opt/conda/ -name '__pycache__' -exec rm -fr {} + \
     && find /opt/conda/ -type d -name 'tests' -exec rm -fr {} + \
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete
+
+ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS false
 
 CMD ["streamlit", "run", "main.py"]
