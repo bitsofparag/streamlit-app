@@ -17,5 +17,7 @@ RUN micromamba clean --all --yes \
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete
 
 ENV STREAMLIT_BROWSER_GATHER_USAGE_STATS false
+ENV STREAMLIT_SERVER_HEADLESS true
+ENV STREAMLIT_SERVER_ENABLE_CORS false
 
 CMD ["streamlit", "run", "main.py"]
